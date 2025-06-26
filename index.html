@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radhe Radhe Travels | Interactive Tour Packages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 
+    Chosen Palette: Deep Purple, Amber, and Neutrals 
+    Application Structure Plan: A single-page application (SPA) with a sticky navigation bar for smooth scrolling to different sections (Home, Packages, Policies, Contact). This structure was chosen to provide a seamless, modern user experience without page reloads, allowing users to easily flow from discovery to comparison to inquiry. The core is an interactive package dashboard with filtering and comparison charts, which is more engaging and informative than a static list. Policies are in an accordion to reduce clutter.
+    Visualization & Content Choices: 
+     - Report Info: Tour Packages Data -> Goal: Compare -> Viz: Interactive Cards & Bar Charts -> Interaction: Filter buttons update cards and charts -> Justification: Allows users to quickly find and compare packages based on key metrics (price, duration), which is crucial for decision-making. -> Library: Chart.js for canvas-based charts.
+     - Report Info: Policy Text -> Goal: Organize -> Viz: Accordion -> Interaction: Click to expand/collapse -> Justification: Presents dense information cleanly, preventing a wall of text and improving readability. -> Library/Method: Vanilla JS and Tailwind CSS.
+     - Report Info: Navigation -> Goal: Navigate -> Viz: Sticky Navbar -> Interaction: Smooth scroll to sections -> Justification: Enhances user experience on a single page, making it feel fluid and connected. -> Library/Method: Vanilla JS and CSS.
+    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: #F8F7FC;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Tinos', serif;
+        }
+        .active-filter {
+            background-color: #673AB7 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .accordion-button svg {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <nav id="navbar" class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <a href="#home" class="text-3xl font-display font-bold text-purple-800">Radhe Radhe Travels</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#home" class="text-gray-600 hover:bg-purple-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#packages" class="text-gray-600 hover:bg-purple-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Tour Packages</a>
+                        <a href="#policies" class="text-gray-600 hover:bg-purple-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Policies & FAQs</a>
+                        <a href="#contact" class="bg-amber-400 text-purple-900 hover:bg-amber-500 px-4 py-2 rounded-full text-sm font-bold shadow-sm transition-transform hover:scale-105">Contact Us</a>
+                    </div>
+                </div>
+                 <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-gray-200 inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-200 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="text-gray-600 hover:bg-purple-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Home</a>
+                <a href="#packages" class="text-gray-600 hover:bg-purple-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Tour Packages</a>
+                <a href="#policies" class="text-gray-600 hover:bg-purple-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Policies & FAQs</a>
+                <a href="#contact" class="text-gray-600 hover:bg-purple-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="relative min-h-[60vh] md:min-h-[80vh] flex items-center bg-cover bg-center bg-no-repeat" style="background-image: url('https://placehold.co/1920x1080/673AB7/FFFFFF?text=Serene+Temple+View');">
+            <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+                <h1 class="text-4xl md:text-6xl font-extrabold font-display tracking-tight leading-tight mb-4">Discover Divine Destinations</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-gray-200">Your trusted companion for sacred pilgrimages and refreshing leisure tours across the enchanting landscapes of India.</p>
+                <div class="mt-8 flex justify-center gap-4">
+                     <a href="#packages" class="inline-block bg-amber-400 text-purple-900 hover:bg-amber-500 font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-transform hover:scale-105">Explore Packages</a>
+                     <a href="#contact" class="inline-block bg-transparent border-2 border-white text-white hover:bg-white hover:text-purple-900 font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-transform hover:scale-105">Plan Your Journey</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-display font-extrabold text-purple-900">Our Devotion to Your Journey</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">At Radhe Radhe Travels, we believe that every journey is a sacred experience. Our meticulously planned tours ensure comfort, safety, and a truly immersive experience, allowing you to connect with the divine and the beauty of India.</p>
+                </div>
+                 <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                    <div class="p-6">
+                        <div class="flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-600 mx-auto mb-4">
+                           <span class="text-3xl">🙏</span>
+                        </div>
+                        <h3 class="text-xl font-bold font-display text-purple-800">Spiritual Expertise</h3>
+                        <p class="mt-2 text-gray-600">Deep understanding of pilgrimage sites and their spiritual significance.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-600 mx-auto mb-4">
+                           <span class="text-3xl">🛋️</span>
+                        </div>
+                        <h3 class="text-xl font-bold font-display text-purple-800">Comfort & Safety</h3>
+                        <p class="mt-2 text-gray-600">Prioritizing your well-being with trusted accommodations and transport.</p>
+                    </div>
+                     <div class="p-6">
+                        <div class="flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-600 mx-auto mb-4">
+                           <span class="text-3xl">✨</span>
+                        </div>
+                        <h3 class="text-xl font-bold font-display text-purple-800">Seamless Planning</h3>
+                        <p class="mt-2 text-gray-600">From darshan passes to delicious meals, we handle every detail.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="packages" class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-display font-extrabold text-purple-900">Curated Pilgrimages & Leisure Tours</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">This section provides an interactive way to explore our sacred journeys. Use the filters to select a tour type and see the corresponding packages. The charts below dynamically update to help you visually compare the duration and starting price of the selected tours, making your decision process easier.</p>
+                </div>
+
+                <div id="package-filters" class="mt-12 flex flex-wrap justify-center gap-2 md:gap-4">
+                </div>
+
+                <div id="package-list" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+
+                <div class="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                     <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-display font-bold text-center text-purple-800 mb-4">Package Duration Comparison (Days)</h3>
+                        <div class="chart-container relative h-80 sm:h-96 w-full max-w-2xl mx-auto">
+                            <canvas id="durationChart"></canvas>
+                        </div>
+                     </div>
+                     <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-display font-bold text-center text-purple-800 mb-4">Package Price Comparison (Starting ₹)</h3>
+                         <div class="chart-container relative h-80 sm:h-96 w-full max-w-2xl mx-auto">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="policies" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-display font-extrabold text-purple-900">Policies & Important Information</h2>
+                     <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">To ensure a smooth and transparent journey, we've outlined our key policies below. Click on any topic to expand and view the details. This helps you find the information you need quickly without being overwhelmed.</p>
+                </div>
+                <div id="accordion-container" class="mt-12 max-w-4xl mx-auto space-y-4">
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-20 bg-purple-800 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-display font-extrabold">Connect With Us</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-purple-200">Ready to book your next adventure or need a custom package? Reach out to us!</p>
+                </div>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white/10 p-8 rounded-2xl">
+                        <h3 class="font-display text-2xl font-bold mb-6">Send Us a Message</h3>
+                        <form action="#" method="POST" class="space-y-6">
+                            <div>
+                                <label for="name" class="sr-only">Name</label>
+                                <input type="text" name="name" id="name" placeholder="Your Name" class="block w-full bg-white/20 border-transparent rounded-md py-3 px-4 placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white">
+                            </div>
+                             <div>
+                                <label for="email" class="sr-only">Email</label>
+                                <input type="email" name="email" id="email" placeholder="Email Address" class="block w-full bg-white/20 border-transparent rounded-md py-3 px-4 placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white">
+                            </div>
+                             <div>
+                                <label for="message" class="sr-only">Message</label>
+                                <textarea name="message" id="message" rows="4" placeholder="Your Message/Query" class="block w-full bg-white/20 border-transparent rounded-md py-3 px-4 placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white"></textarea>
+                            </div>
+                            <div>
+                                <button type="submit" class="w-full bg-amber-400 text-purple-900 hover:bg-amber-500 font-bold py-3 px-6 rounded-full text-lg shadow-lg transition-transform hover:scale-105">Submit Inquiry</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="text-center md:text-left space-y-8">
+                        <div>
+                             <h3 class="font-display text-2xl font-bold text-amber-400">Reach Us Directly</h3>
+                             <p class="mt-2 text-lg text-purple-200">Phone: <a href="tel:+910000000000" class="hover:text-amber-400">+91 12345 67890</a></p>
+                             <p class="mt-1 text-lg text-purple-200">Email: <a href="mailto:info@radheradhetravels.com" class="hover:text-amber-400">info@radheradhetravels.com</a></p>
+                        </div>
+                        <div>
+                             <h3 class="font-display text-2xl font-bold text-amber-400">Our Mumbai Office</h3>
+                             <p class="mt-2 text-lg text-purple-200">123 Pilgrim Path, Andheri (E)<br>Mumbai, Maharashtra, 400059</p>
+                             <p class="mt-1 text-lg text-purple-200">Mon-Sat: 10:00 AM - 6:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-400">
+            <p>© <span id="current-year"></span> Radhe Radhe Travels. All Rights Reserved. | Designed with Devotion in Mumbai.</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const packagesData = [
+        {
+            id: 1,
+            title: "Chardham Yatra",
+            subtitle: "The Ultimate Divine Circuit",
+            duration: 12,
+            price: 45000,
+            image: "https://placehold.co/600x400/7B1FA2/FFFFFF?text=Chardham",
+            inclusions: ["Round-trip Travel", "Hotel Stays", "All Vegetarian Meals", "Darshan Pass Assistance", "Dedicated Vehicle", "Experienced Guide"]
+        },
+        {
+            id: 2,
+            title: "Ayodhya + Prayagraj",
+            subtitle: "Cradle of Spirituality",
+            duration: 5,
+            price: 18500,
+            image: "https://placehold.co/600x400/673AB7/FFFFFF?text=Ayodhya",
+            inclusions: ["Round-trip Travel", "Hotel Stays", "Breakfast & Dinner", "Guided Temple Visits", "Private AC Vehicle", "Local Expert Guide"]
+        },
+        {
+            id: 3,
+            title: "Tirupati Balaji",
+            subtitle: "Abode of Lord Venkateswara",
+            duration: 3,
+            price: 12000,
+            image: "https://placehold.co/600x400/8E24AA/FFFFFF?text=Tirupati",
+            inclusions: ["Round-trip Travel", "Hotel Stays", "Daily Breakfast", "Special Entry Darshan", "AC Vehicle Transfers", "Dedicated Assistant"]
+        },
+        {
+            id: 4,
+            title: "Haridwar + Rishikesh",
+            subtitle: "Ganga's Sacred Embrace",
+            duration: 4,
+            price: 15000,
+            image: "https://placehold.co/600x400/9C27B0/FFFFFF?text=Haridwar",
+            inclusions: ["Round-trip Travel", "Hotel Stays", "Breakfast & Dinner", "Ganga Aarti Experience", "Private AC Vehicle", "Temple & Ashram Visits"]
+        },
+        {
+            id: 5,
+            title: "Braj Dham Scooter Trip",
+            subtitle: "A Divine Ride Through Krishna's Land",
+            duration: 6,
+            price: 11000,
+            image: "https://placehold.co/600x400/AB47BC/FFFFFF?text=Braj+Dham",
+            inclusions: ["Round-trip Travel", "Hotel Stays", "Scooter Rental & Fuel", "Daily Breakfast", "Self-guided Itinerary", "24/7 Support"]
+        }
+    ];
+
+    const policiesData = [
+        {
+            title: "Booking & Payment Policy",
+            content: "All bookings are subject to availability and confirmed upon receipt of a non-refundable advance (typically 25-50%). The remaining balance must be paid 30 days prior to departure. For bookings within 30 days of departure, full payment is required. We accept bank transfer, UPI, and select online gateways."
+        },
+        {
+            title: "Cancellation Policy",
+            content: "Cancellations 60+ days prior: Loss of advance. 30-59 days: 50% of total cost. 15-29 days: 75% of total cost. Less than 15 days or No Show: 100% of total cost. If we cancel a tour, we will offer an alternative or a full refund of the amount paid."
+        },
+        {
+            title: "What's Included / Not Included",
+            content: "<strong>Included:</strong> Accommodation, meals, and transport as per package. Darshan assistance and taxes. <strong>Not Included:</strong> Personal expenses, entrance fees (unless specified), travel insurance, tips, and any services not mentioned in the itinerary."
+        },
+        {
+            title: "Identity Requirements",
+            content: "Indian Nationals must carry a valid original photo ID (Aadhar, Voter ID, Passport, or Driving License). Foreign Nationals must carry a valid Passport and Visa. It is mandatory for all travelers to carry ID throughout the journey."
+        }
+    ];
+
+    const packageList = document.getElementById('package-list');
+    const packageFilters = document.getElementById('package-filters');
+    let durationChart, priceChart;
+
+    function renderPackages(filter = 'All') {
+        const filteredPackages = filter === 'All' ? packagesData : packagesData.filter(p => p.title.includes(filter.split(' ')[0]));
+        packageList.innerHTML = '';
+        filteredPackages.forEach(pkg => {
+            const card = document.createElement('div');
+            card.className = "bg-white rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 flex flex-col";
+            card.innerHTML = `
+                <img src="${pkg.image}" alt="${pkg.title}" class="w-full h-48 object-cover">
+                <div class="p-6 flex flex-col flex-grow">
+                    <h3 class="text-2xl font-display font-bold text-purple-900">${pkg.title}</h3>
+                    <p class="text-purple-700 font-semibold mb-3">${pkg.subtitle}</p>
+                    <div class="flex items-center text-gray-600 mb-4 space-x-4">
+                        <span>🕒 ${pkg.duration} Days</span>
+                        <span>|</span>
+                        <span>₹ ${pkg.price.toLocaleString('en-IN')}</span>
+                    </div>
+                    <ul class="space-y-2 text-sm text-gray-600 mb-6 flex-grow">
+                        ${pkg.inclusions.map(inc => `<li class="flex items-start"><span class="text-amber-500 mr-2">✔</span> ${inc}</li>`).join('')}
+                    </ul>
+                    <a href="#contact" class="mt-auto block w-full text-center bg-purple-600 text-white hover:bg-purple-700 font-bold py-3 px-6 rounded-full text-md shadow-md transition-transform hover:scale-105">Enquire Now</a>
+                </div>
+            `;
+            packageList.appendChild(card);
+        });
+        updateCharts(filteredPackages);
+    }
+    
+    function renderFilters() {
+        const filters = ['All', ...packagesData.map(p => p.title)];
+        packageFilters.innerHTML = filters.map(filter => 
+            `<button class="filter-btn px-4 py-2 rounded-full border-2 border-purple-600 text-purple-600 font-semibold transition-colors duration-300 hover:bg-purple-100 ${filter === 'All' ? 'active-filter' : ''}" data-filter="${filter}">
+                ${filter}
+            </button>`
+        ).join('');
+        
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active-filter'));
+                this.classList.add('active-filter');
+                renderPackages(this.dataset.filter);
+            });
+        });
+    }
+
+    function createCharts() {
+        const durationCtx = document.getElementById('durationChart').getContext('2d');
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#212121',
+                    titleFont: { size: 16, family: 'Tinos' },
+                    bodyFont: { size: 14, family: 'Work Sans' },
+                    padding: 12,
+                    cornerRadius: 8,
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Work Sans', weight: '600' } }
+                },
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: '#e0e0e0' },
+                    ticks: { font: { family: 'Work Sans' } }
+                }
+            }
+        };
+
+        durationChart = new Chart(durationCtx, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Duration (Days)', data: [], backgroundColor: '#9C27B0' }] },
+            options: { ...chartOptions, indexAxis: 'y' }
+        });
+        
+        priceChart = new Chart(priceCtx, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Price (₹)', data: [], backgroundColor: '#673AB7' }] },
+            options: chartOptions
+        });
+    }
+
+    function updateCharts(data) {
+        const labels = data.map(p => p.title.length > 15 ? p.title.substring(0, 15) + '...' : p.title);
+        const durations = data.map(p => p.duration);
+        const prices = data.map(p => p.price);
+        
+        durationChart.data.labels = labels;
+        durationChart.data.datasets[0].data = durations;
+        durationChart.update();
+        
+        priceChart.data.labels = labels;
+        priceChart.data.datasets[0].data = prices;
+        priceChart.update();
+    }
+    
+    function renderAccordion() {
+        const container = document.getElementById('accordion-container');
+        policiesData.forEach((item, index) => {
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'border border-gray-200 rounded-lg shadow-sm';
+            accordionItem.innerHTML = `
+                <h2>
+                    <button type="button" class="accordion-button flex items-center justify-between w-full p-5 font-medium text-left text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-colors" data-accordion-target="#accordion-body-${index}" aria-expanded="false">
+                        <span class="text-lg font-display text-purple-800">${item.title}</span>
+                        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </h2>
+                <div id="accordion-body-${index}" class="accordion-content">
+                    <div class="p-5 border-t border-gray-200 text-gray-600 space-y-2">
+                        <p>${item.content}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(accordionItem);
+        });
+
+        document.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.parentElement.nextElementSibling;
+                const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+                button.setAttribute('aria-expanded', !isExpanded);
+                button.querySelector('svg').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                
+                if (isExpanded) {
+                    content.style.maxHeight = '0px';
+                } else {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+            });
+        });
+    }
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+    });
+    
+    document.querySelectorAll('#mobile-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+        });
+    });
+
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+    
+    renderFilters();
+    renderPackages();
+    createCharts();
+    renderAccordion();
+});
+</script>
+
+</body>
+</html>
